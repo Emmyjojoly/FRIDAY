@@ -1,0 +1,66 @@
+index.php
+<!DOCTYPE html>
+<html>
+<body>
+
+<?php
+$servername = "mysql_app";
+$username = "root";
+$password = "";
+$dbname = "school_db";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$sql = "SELECT id, firstname, lastname,regno FROM student";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    // output data of each row
+    while($row = $result->fetch_assoc()) {
+        echo "<br> id: ". $row["id"]. " - Names: ". $row["firstname"]. " " . $row["lastname"] . ", -regno" . $row["regnumber"] . "<br>";
+    }
+} else {
+    echo "0 results";
+}
+
+$conn->close();
+?>
+
+</body>
+</html>
+
+Dockerfile
+
+FROM php:7.2-apache
+RUN docker-php-ext-install mysqli
+
+docker-compose.yml
+
+version: '1.0.3'
+services:
+  php_today:
+    build: .
+    ports:
+      - "8081:80"
+    volumes:
+      - ./:/var/www/html
+  mysql_app:
+    image: mysql:latest
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    ports:
+      - "8082:80"
+    environment:
+      - MYSQL_DATABASE=school_db
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_HOST=mysql_app
+      - PMA_PORT=3306
+    ports:
+      - 9000:80
